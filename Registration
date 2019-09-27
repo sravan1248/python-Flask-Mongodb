@@ -1,0 +1,55 @@
+from flask import Flask,request,jsonify
+from flask_pymongo import PyMongo
+from flask_cors import CORS
+from time import strftime
+from random import randint
+import smtplib,base64,requests
+from flask_jwt_extended import (JWTManager,create_access_token)
+
+app = Flask(__name__)
+
+mail = Mail(app)
+app.config["MONGO_DBNAME"] = "database_name"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/database_name"
+mongo = PyMongo(app)
+
+@app.route('/Registration',methods=['POST'])
+def register():
+    data = mongo.db.registration
+    try:
+        name = request.json['name']
+        emailid = request.json['emailid']
+        password = request.json['password']
+        mobilenumber = str(request.json['mobilenumber'])
+        access_token = create_access_token(identity=mobilenumber)
+        referralcode = request.json['referralcode']
+        created_time = strftime("%Y/%m/%d %H:%M:%S %I%p")
+        smskey = str(request.json['smskey'])
+        otp_value = randint(1000, 9999)
+        email_result = data.find({'emailid': emailid})
+        mobile_result = data.find({'mobilenumber': mobilenumber})
+        url = url of sms gateway mobiles="+ mobilenumber+"&authkey=authkey&route=route_id&sender=sample name&message=Your OTP IS"+' '+str(otp_value)+"&country=91"
+        f = requests.get(url)
+        user_id_list = [i['userid'] for i in data.find()]
+        if len(user_id_list) is 0:
+            user_id = 1
+        else:
+            user_id = int(user_id_list[-1]) + 1
+        if email_result.count()!=0 or mobile_result.count()!=0:
+            return jsonify({'status': 'failure', 'message': 'User is already registered'})
+        else:
+            output = []
+            data.insert({'userid': int(user_id),'name':name,'mobilenumber': mobilenumber,'emailid': emailid,'password': password,'otp': str(otp_value),
+                         'smskey':smskey,'referralcode':referralcode,'createdtime': created_time})
+
+            msg = Message('Welcome',recipients=[emailid])
+            msg.body = "Your OTP is:" + str(otp_value)
+            mail.send(msg)
+            output.append({'user_id':user_id,'name':name,'mobilenumber':mobilenumber,'emailid':emailid,'password':password,'referralcode':referralcode,
+                           'otp': int(otp_value),'smskey':smskey,"access_token":access_token,'created_time':created_time})
+        return jsonify({'status': 'success', 'message': 'User is registered','result':output})
+    except Exception as e:
+        return jsonify(status="Fail", message=str(e))
+        
+if __name__ == '__main__':
+    app.run(debug=True)

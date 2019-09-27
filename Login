@@ -1,0 +1,28 @@
+
+
+@app.route('/CricketFantasy/login',methods=['POST'])
+def login():
+    login = mongo.db.register_user
+    username = request.json['username']
+    password = request.json['password']
+    access_token = create_access_token(identity=username)
+    output = []
+    details = login.find({'emailid': username,'password': password})
+    detail = login.find({'mobilenumber': username,'password': password})
+    for j in details:
+        output.append({'user_id':j['userid'],'name':j['name'],'emailid':j['emailid'],'password':j['password'],'mobilenumber':j['mobileNumber'],
+                       'smskey':j['smskey'],'referralcode':j['referralcode'],'created_time':j['createdtime']})
+    for q in detail:
+        output.append({'user_id':q['userid'],'name':q['name'],'emailid':q['emailId'],'password':q['password'],'mobilenumber':q['mobileNumber'],
+                       'smskey':q['smskey'],'referralcode':q['referralcode'],'created_time':q['createdtime']})
+    finaloutput = {}
+    if len(output) != 0:
+        finaloutput['status'] = 'success'
+        finaloutput['message'] = 'login Successfully'
+        finaloutput['result'] = output
+        finaloutput['token'] = access_token
+    else:
+        finaloutput['status'] = 'failure'
+        finaloutput['message'] = 'Invalid Credentials. Please check and try again'
+        finaloutput['result'] = []
+    return jsonify(finaloutput)

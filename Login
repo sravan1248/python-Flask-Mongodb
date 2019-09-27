@@ -1,8 +1,21 @@
+from flask import Flask,request,jsonify
+from flask_pymongo import PyMongo
+from flask_cors import CORS
+from time import strftime
+from random import randint
+import smtplib,base64,requests
+from flask_jwt_extended import (JWTManager,create_access_token)
 
+app = Flask(__name__)
 
-@app.route('/CricketFantasy/login',methods=['POST'])
+mail = Mail(app)
+app.config["MONGO_DBNAME"] = "database_name"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/database_name"
+mongo = PyMongo(app)
+
+@app.route('/login',methods=['POST'])
 def login():
-    login = mongo.db.register_user
+    login = mongo.db.registration
     username = request.json['username']
     password = request.json['password']
     access_token = create_access_token(identity=username)
@@ -26,3 +39,6 @@ def login():
         finaloutput['message'] = 'Invalid Credentials. Please check and try again'
         finaloutput['result'] = []
     return jsonify(finaloutput)
+    
+  if __name__ == '__main__':
+    app.run(debug = True)

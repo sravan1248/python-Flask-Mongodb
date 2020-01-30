@@ -13,7 +13,7 @@ app.config["MONGO_URI"] = "mongodb://localhost:27017/database_name"
 mongo = PyMongo(app)
 
 
-@app.route('/CricketFantasy/quick_support/<UserId>', methods=['POST'])
+@app.route('/quick_support/<UserId>', methods=['POST'])
 def quick_support(UserId):
     try:
         report_data = mongo.db.quick_support
@@ -23,28 +23,28 @@ def quick_support(UserId):
         mobile_number = request.json['mobile_number']
         subject = request.json['subject']
         please_enter_your_comment = request.json['please_enter_your_comment']
-
         info = data.find()
         for i in info:
-            # print(i)
             ik = i['UserId']
             if int(ik) == int(UserId):
-
                 report_data.insert({'full_name': full_name,'mobile_number': mobile_number,'subject': subject,
                                 'please_enter_your_comment': please_enter_your_comment,'UserId':UserId})
                 output.append({'full_name': full_name,'mobile_number': mobile_number,'subject': subject,
                                 'please_enter_your_comment': please_enter_your_comment,'UserId':UserId})
 
-                sender = 'no1fantasyindia@gmail.com'
-                recipients = '06shalinikhawse@gmail.com'
-                msg = Message('User Complaint', sender=sender, recipients=[recipients])
+                sender = 'sender email@gmail.com'
+                recipients = 'receiver email@gmail.com'
+                msg = Message('Your message', sender=sender, recipients=[recipients])
                 msg.body = Unicode(output)
                 print(msg.body)
                 mail.send(msg)
 
-                return jsonify({'status': 'success', 'message': 'User post information successfully', 'result': output})
+                return jsonify({'status': 'success', 'message': 'User concern posted successfully', 'result': output})
         else:
-            return jsonify({'status':'Fail','message':'Data not found'})
+            return jsonify({'status':'Fail', 'message': 'Data not found' , 'result' : output})
 
     except Exception as e:
         return jsonify(status="Fail", message=str(e))
+        
+if __name__ = '__main__':
+    app.run(debug = True)

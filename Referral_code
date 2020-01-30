@@ -1,6 +1,18 @@
+from flask import Flask,request,jsonify
+from flask_pymongo import PyMongo
+from flask_cors import CORS
+from time import strftime
+from random import randint,requests
+from flask_jwt_extended import (JWTManager,create_access_token)
 
+app = Flask(__name__)
 
-@app.route('/CricketFantasy/share_referral_code',methods=['POST','GET'])
+mail = Mail(app)
+app.config["MONGO_DBNAME"] = "database_name"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/database_name"
+mongo = PyMongo(app)
+
+@app.route('share_referral_code',methods=['POST'])
 def share_referral_code():
     data= mongo.db.register
     UserId= int(request.json['UserId'])

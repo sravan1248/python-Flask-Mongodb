@@ -12,6 +12,16 @@ app.config["MONGO_DBNAME"] = "database_name"
 app.config["MONGO_URI"] = "mongodb://localhost:27017/database_name"
 mongo = PyMongo(app)
 
+@app.route('/email_send', methods=['POST'])
+def email_send():
+    emailid = request.json['emailid']
+    SUBJECT = 'your subject'
+    message = 'Subject: {}'.format(SUBJECT)
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login('sender_email@gmail.com', 'password')
+    server.sendmail('sender_email@gmail.com', emailid, message)
+    return jsonify({'status': 'success', 'message': 'Get successfully'})
 
 @app.route('/quick_support/<UserId>', methods=['POST'])
 def quick_support(UserId):

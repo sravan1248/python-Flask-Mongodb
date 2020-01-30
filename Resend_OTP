@@ -1,0 +1,48 @@
+from flask import Flask,request,jsonify
+from flask_pymongo import PyMongo
+from flask_cors import CORS
+from time import strftime
+from random import randint,requests
+
+app = Flask(__name__)
+
+mail = Mail(app)
+app.config["MONGO_DBNAME"] = "database_name"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/database_name"
+mongo = PyMongo(app)
+
+@app.route('/Resend_Otp', methods=['POST'])
+@cross_origin(supports_credentials=True)
+def Resend_Otp():
+    try:
+        data = mongo.db.register
+        username = str(request.json['username'])
+        otp_value = randint(1000, 9999)
+        rule = re.compile('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$')
+        if rule.search(username):
+            data1 = {"EmailId": username}
+        else:
+            data1 = {"MobileNumber": username}
+        if (data.find(data1).count() != 0):
+            cursor = data.find_one(data1)
+            if (username == cursor['EmailId'] or username == cursor['MobileNumber']):
+                url = "link of msgmobiles=" + cursor[
+                    'MobileNumber'] + "&authkey=key&route=4&sender=TESTIN&message=Your OTP is" + ' ' + str(
+                    otp_value) + "&country=91"
+                f = requests.get(url)
+                print(f)
+                data.find_one_and_update(data1, {'$set': {'OTP': str(otp_value)}})
+                msg = Message('your message', recipients=[cursor['EmailId']])
+                msg.body = "Your OTP is:" + str(otp_value)
+                mail.send(msg)
+                return jsonify({'status': 'success', "message": "OTP generated successfully", "OTP": int(otp_value),
+                                "username": username})
+            else:
+                return jsonify({'status': "failure", "message": "OTP not generated successfully"})
+        else:
+            return jsonify({'status': 'failure', 'message': "MobileNumber or EmailId not exist"})
+    except Exception as e:
+        return jsonify(status="Fail", message=str(e))
+        
+if __name__ == '__main__':
+  app.run(debug = True)

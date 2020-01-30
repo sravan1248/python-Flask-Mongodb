@@ -1,0 +1,25 @@
+
+
+@app.route('/CricketFantasy/share_referral_code',methods=['POST','GET'])
+def share_referral_code():
+    data= mongo.db.register
+    UserId= int(request.json['UserId'])
+    output=[]
+    try:
+        if data.find_one({'UserId':int(UserId)}) is not None:
+            for i in data.find({'UserId':int(UserId)}):
+                try:
+                    user_invite_code= i['user_invite_code']
+                    output.append({'user_invite_code':user_invite_code})
+                except KeyError or ValueError:
+                    user_invite_code=""
+                    output.append({'user_invite_code': user_invite_code})
+
+            return jsonify({'status':'success','message':'Share your Invite Code','output':output})
+        else:
+            return jsonify({'status':'fail','message':'Unable to get invite code. Please try again','output':[]})
+    except Exception as e:
+        return jsonify({'status':'fail','output':[],'message':str(e)})
+        
+if __name__ == '__main__':
+  app.run(debug = True)

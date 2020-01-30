@@ -1,8 +1,7 @@
 from flask import Flask,request,jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-from time import strftime
-from random import randint,requests
+from time import strftime,requests
 from flask_jwt_extended import (JWTManager,create_access_token)
 
 app = Flask(__name__)
@@ -21,7 +20,7 @@ ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
 UPLOAD_FOLDER = os.path.join(APP_ROOT, UPLOAD)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-@app.route('/CricketFantasy/upload_photo/<UserId>', methods=['POST', 'GET'])
+@app.route('/upload_photo/<UserId>', methods=['POST', 'GET'])
 @cross_origin(supports_credentials=True)
 def upload_photo(UserId):
     data = mongo.db.register
@@ -29,12 +28,10 @@ def upload_photo(UserId):
     if request.method == 'POST':
         file = request.files['file']
         filename = secure_filename(file.filename)
-        mongo_db_path = "cricketfantasy/User_Images/" + filename
+        mongo_db_path = "/User_Images/" + filename
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         print(filepath)
         target = file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        # if not os.path.isdir(target):  # mkdir if not exists
-        #     os.makedirs(target)
         print(target)
         file.save(target)
         users = data.find({'UserId': int(UserId)})

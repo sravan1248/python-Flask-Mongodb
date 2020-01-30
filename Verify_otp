@@ -1,0 +1,42 @@
+from flask import Flask,request,jsonify
+from flask_pymongo import PyMongo
+from flask_cors import CORS
+from time import strftime
+from random import randint,requests
+from flask_jwt_extended import (JWTManager,create_access_token)
+
+app = Flask(__name__)
+
+mail = Mail(app)
+app.config["MONGO_DBNAME"] = "database_name"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/database_name"
+mongo = PyMongo(app)
+
+@app.route('/verify_otp', methods=['POST'])
+def verify_otp():
+    data = mongo.db.register
+    otp_entered = str(request.json['otp_entered'])
+    username = request.json['username']
+    output = []
+    email_details = data.find({'EmailId': username, 'OTP': str(otp_entered)})
+    mobile_details = data.find({'MobileNumber': username, 'OTP': str(otp_entered)})
+    for j in email_details:
+        output.append({'user_id': j['UserId'], 'emailid': j['EmailId'], 'password': j['Password'],
+                       'mobilenumber': j['MobileNumber'], 'otp_entered': j['OTP'],
+                       'smskey': j['SMSKEY'], 'referralcode': j['ReferralCode'], 'Verified': 1,
+                       'created_time': j['CreatedTime']}) 
+    for k in mobile_details:
+        output.append({'user_id': k['UserId'], 'emailid': k['EmailId'], 'password': k['Password'],
+                       'mobilenumber': k['MobileNumber'], 'otp_entered': k['OTP'],
+                       'smskey': k['SMSKEY'], 'referralcode': k['ReferralCode'], 'Verified': 1,
+                       'created_time': k['CreatedTime']})
+    finaloutput = {}
+    if len(output) != 0:
+        finaloutput['status'] = 'success'
+        finaloutput['message'] = 'OTP verified successfully'
+        finaloutput['result'] = output
+    else:
+        finaloutput['status'] = 'failure'
+        finaloutput['message'] = 'Invalid Credentials. Please check and try again'
+        finaloutput['result'] = len(output)
+    return jsonify(finaloutput)

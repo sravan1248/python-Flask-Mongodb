@@ -1,0 +1,44 @@
+from flask import Flask,request,jsonify
+from flask_pymongo import PyMongo
+from flask_cors import CORS
+from time import strftime
+from random import randint,requests
+from flask_jwt_extended import (JWTManager,create_access_token)
+
+app = Flask(__name__)
+
+mail = Mail(app)
+app.config["MONGO_DBNAME"] = "database_name"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/database_name"
+mongo = PyMongo(app)
+
+@app.route('/update_account', methods=['POST'])
+def update_account():
+    data = mongo.db.register
+    UserId = request.json['UserId']
+    name = request.json['name']
+    emailid = request.json['emailid']
+    password = request.json['password']
+    date_of_birth = request.json['date_of_birth']
+    gender = request.json['gender']
+    mobilenumber = request.json['mobilenumber']
+    address = request.json['address']
+    city = request.json['city']
+    pincode = request.json['pincode']
+    updated_time = strftime("%Y/%m/%d %H:%M:%S %I%p")
+    data.find_one_and_update({'UserId': UserId}, {'$set': {'Name': name, 'EmailId': emailid, 'Password': password, 
+                              'Date_Of_Birth': date_of_birth, 'Gender': gender,'Mobile Number': mobilenumber, 
+                              'Address': address, 'City': city, 'Pincode': pincode,'UpdatedTime': updated_time}})
+    output = []
+    details = data.find({'UserId': UserId})
+    for j in details:
+        output.append({'UserId': j['UserId'], 'name': j['Name'], 'emailid': j['EmailId'], 'password': j['Password'],
+                       'date_of_birth': j['Date_Of_Birth'],
+                       'mobilenumber': j['Mobile Number'], 'gender': j['Gender'], 'address': j['Address'],
+                       'city': j['City'], 'pincode': j['Pincode'],
+                       'smskey': j['SMSKEY'], 'referralcode': j['ReferralCode'], 'updated_time': j['UpdatedTime']})
+
+    return jsonify({'status': 'success', 'message': 'Updated details successfully', 'result': output})
+    
+if __name__ == '__main__':
+  app.run(debug = True)

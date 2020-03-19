@@ -1,44 +1,50 @@
 from flask import Flask,request,jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-from time import strftime
+from time import strftime                            # Packages
 from random import randint
 import smtplib,base64,requests
+import datetime
 from flask_jwt_extended import (JWTManager,create_access_token)
+#------------------------------------------------------------------------------------------------------------
 
 app = Flask(__name__)
-
-mail = Mail(app)
+mail = Mail(app)                                                    # Database connection
 app.config["MONGO_DBNAME"] = "database_name"
 app.config["MONGO_URI"] = "mongodb://localhost:27017/database_name"
 mongo = PyMongo(app)
+#------------------------------------------------------------------------------------------------------------
 
-@app.route('/Registration',methods=['POST'])
-def register():
-    data = mongo.db.registration
+@app.route('/Registration',methods=['POST'])                        # URL
+def register():                                                     # Creating a Function with name
+    data = mongo.db.registration                                    # Collection
     try:
+#------------------------------------------------------------------------------------------------------------
         name = request.json['name']
         emailid = request.json['emailid']
         password = request.json['password']
         mobilenumber = str(request.json['mobilenumber'])
         access_token = create_access_token(identity=mobilenumber)
         try:
-            referralcode = request.json['referralcode']
+            referralcode = request.json['referralcode']             # Input Parameters
         except KeyError or ValueError:
             referralcode = " "
-        created_time = strftime("%Y/%m/%d %H:%M:%S %I%p")
+        created_time = datetime.datetime.now()
         try:
             smskey = str(request.json['smskey'])
         except KeyError or ValueError:
             smskey = " "
         otp_value = randint(1000, 9999)
-        email_result = data.find({'emailid': emailid})
+#----------------------------------------------------------------------------------------------------------------------
+        email_result = data.find({'emailid': emailid})                 # It check whether email and mobile number exits 
         mobile_result = data.find({'mobilenumber': mobilenumber})
+#----------------------------------------------------------------------------------------------------------------------      
         user_id_list = [i['userid'] for i in data.find()]
         if len(user_id_list) is 0:
-            user_id = 1
+            user_id = 1                                                # This part generate unique ID 
         else:
             user_id = int(user_id_list[-1]) + 1
+#---------------------------------------------------------------------------------------------------------------------
         if email_result.count()!=0 or mobile_result.count()!=0:
             return jsonify({'status': 'failure', 'message': 'User is already registered'})
         else:
